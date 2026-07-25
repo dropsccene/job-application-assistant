@@ -44,14 +44,27 @@ class ReturnToListError(RuntimeError):
     """
 
 
-async def send_response_and_go_back(response: str) -> None:
+async def send_response_and_go_back(response: str, resume_image: str | None = None) -> None:
     """在 BOSS 沟通页发送 ``response`` 然后退回到列表。
 
-    ``send_chat_message`` 真正把招呼语发出去之后才尝试返回列表；返回失败抛
-    ``ReturnToListError``（此时消息已送达招聘者，调用方要照常记 ``sent=True``）。
+    ``send_chat_message`` 把招呼语发出去，可选跟一张简历图片（退回前发送）。
+    发送失败抛 ``ReturnToListError``。
     """
     await finding_jobs.send_chat_message(response)
-    await asyncio.sleep(10)
+
+    if resume_image:
+        await asyncio.sleep(2)
+        try:
+            log.info("📎 正在发送简历图片...")
+            ok = await finding_jobs.send_chat_image(resume_image)
+            if ok:
+                log.info("✅ 简历图片已发送")
+            else:
+                log.warning("简历图片发送失败")
+        except Exception as e:
+            log.warning("简历图片发送异常: %s", e)
+
+    await asyncio.sleep(5)
     if not await finding_jobs.return_to_job_list():
         raise ReturnToListError("发送后未能返回岗位列表")
 
@@ -137,7 +150,7 @@ async def send_job_descriptions_to_chat(
     iteration = 0
     consecutive_misses = 0
     sent_count = 0
-    max_sent = _int_env("BOSS_AUTO_SEND_MAX_SENT", 50, minimum=1)
+    max_sent = _int_env("BOSS_AUTO_SEND_MAX_SENT", 25, minimum=1)
     send_delay_min, send_delay_max = _send_delay_range()
     # 一旦 LLM 评分走了 fail-open（缺配置 / 调用挂 / 解析不出分），第二层过滤其实在
     # 全放行。只在本轮**首次**遇到时提示一次，别每个岗位刷屏。
@@ -310,12 +323,28 @@ async def send_job_descriptions_to_chat(
                         # 改成 class 匹配，跟 get_text_by_css(".op-btn.op-btn-chat") 配套。
                         contact_xpath = "//a[contains(@class, 'op-btn-chat')]"
                         await finding_jobs.click_by_xpath(contact_xpath, timeout=10)
-                        await finding_jobs.wait_for_css("#chat-input", timeout=50)
-                        # 消息在 send_chat_message 就送达招聘者，ReturnToListError 只表示
-                        # 之后没能回到列表。「发送成功」跟「回到列表」必须分开记：无论能否
-                        # 回列表都要记 sent=True + 计数，否则漏记真实发送、重跑会重复联系。
+                        # 等待聊天窗口加载——BOSS改版后多选择器兼容
+                        chat_ready = False
+                        for sel in ["#chat-input", "textarea", "div[contenteditable=\"true\"]", "[class*=\"chat\"] textarea"]:
+                            if await finding_jobs.wait_for_css(sel, timeout=8):
+                                chat_ready = True
+                                break
+                        if not chat_ready:
+                            log.warning("聊天窗口可能未正常加载，尝试继续")
+                        # 准备跟进图片（优先 Demo 动图 > 简历截图）
+                        resume_img = None
+                        if os.getenv("BOSS_SEND_RESUME_IMAGE", "").strip() == "1":
+                            try:
+                                from boss_zhipin.resume_image import get_demo_gif
+                                img = get_demo_gif()
+                                if img and img.exists():
+                                    resume_img = str(img)
+                            except Exception:
+                                pass
+
+                        # 发送文字招呼语 + 图片，然后退回列表
                         try:
-                            await send_response_and_go_back(response)
+                            await send_response_and_go_back(response, resume_img)
                             returned_to_list = True
                         except ReturnToListError as e:
                             log.warning("%s；招呼语已发送，照常记录后结束本轮", e)
@@ -406,3 +435,17 @@ async def send_job_descriptions_to_chat(
                 message=f"{type(e).__name__}: {e}",
             )
             break
+
+    # ---- 投递结束，抓取聊天状态 ----
+    if sent_count > 0:
+        try:
+            from boss_zhipin.inbox import check_inbox, save_inbox_log
+            tab = finding_jobs._tab
+            if tab:
+                log.info("📬 正在检查 HR 回复状态...")
+                results = await check_inbox(tab)
+                if results:
+                    log_file = save_inbox_log(results)
+                    log.info("📬 聊天状态已保存: %s", log_file)
+        except Exception as e:
+            log.warning("聊天状态检查失败: %s", e)
