@@ -116,7 +116,8 @@ def generate_letter(
     user_prompt = (
         f"工作描述:\n{job_description}\n\n"
         f"简历内容:\n{resume_context}\n\n"
-        "要求:\n根据工作描述，寻找出简历里最合适的技能都有哪些?求职者的优势是什么?"
+        "要求:\n根据工作描述和简历内容，写一条在 BOSS 直聘上主动打招呼的开场消息，"
+        "只输出消息正文（风格规则见系统提示，不要输出技能分析、不要任何解释）。"
     )
 
     t0 = time.monotonic()

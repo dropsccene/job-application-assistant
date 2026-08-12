@@ -44,25 +44,27 @@ class ReturnToListError(RuntimeError):
     """
 
 
-async def send_response_and_go_back(response: str, resume_image: str | None = None) -> None:
+async def send_response_and_go_back(response: str, attachments: list[str] | None = None) -> None:
     """在 BOSS 沟通页发送 ``response`` 然后退回到列表。
 
-    ``send_chat_message`` 把招呼语发出去，可选跟一张简历图片（退回前发送）。
-    发送失败抛 ``ReturnToListError``。
+    ``send_chat_message`` 把招呼语发出去，``attachments`` 里的附件（简历图片 /
+    Demo 动图）逐张发送（退回前发送）。发送失败抛 ``ReturnToListError``。
     """
     await finding_jobs.send_chat_message(response)
 
-    if resume_image:
+    if attachments:
         await asyncio.sleep(2)
-        try:
-            log.info("📎 正在发送简历图片...")
-            ok = await finding_jobs.send_chat_image(resume_image)
-            if ok:
-                log.info("✅ 简历图片已发送")
-            else:
-                log.warning("简历图片发送失败")
-        except Exception as e:
-            log.warning("简历图片发送异常: %s", e)
+        for path in attachments:
+            try:
+                log.info("📎 正在发送附件: %s", path)
+                ok = await finding_jobs.send_chat_image(path)
+                if ok:
+                    log.info("✅ 附件已发送: %s", path)
+                else:
+                    log.warning("附件发送失败: %s", path)
+            except Exception as e:
+                log.warning("附件发送异常: %s (%s)", path, e)
+            await asyncio.sleep(1)
 
     await asyncio.sleep(5)
     if not await finding_jobs.return_to_job_list():
@@ -331,16 +333,15 @@ async def send_job_descriptions_to_chat(
                                 break
                         if not chat_ready:
                             log.warning("聊天窗口可能未正常加载，尝试继续")
-                        # 准备跟进图片（优先 Demo 动图 > 简历截图）
+                        # 准备跟进附件：BOSS_SEND_RESUME_IMAGE / BOSS_SEND_DEMO_GIF 开关
+                        # 决定发简历图片、Demo 动图还是都发（见 resume_image.resolve_chat_attachments）
                         resume_img = None
-                        if os.getenv("BOSS_SEND_RESUME_IMAGE", "").strip() == "1":
-                            try:
-                                from boss_zhipin.resume_image import get_demo_gif
-                                img = get_demo_gif()
-                                if img and img.exists():
-                                    resume_img = str(img)
-                            except Exception:
-                                pass
+                        try:
+                            from boss_zhipin.resume_image import resolve_chat_attachments
+                            imgs = resolve_chat_attachments()
+                            resume_img = [str(p) for p in imgs if p.exists()]
+                        except Exception:
+                            pass
 
                         # 发送文字招呼语 + 图片，然后退回列表
                         try:

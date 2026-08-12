@@ -162,27 +162,19 @@ def llm_match_score(
         return 100, "无法评分（LLM 未配置）", True
     prov = current_provider_label()
 
-    prompt = f"""你是一位专业的招聘匹配分析师。请评估以下简历与职位描述的匹配程度。
+    prompt = f"""评估简历与职位的匹配度，回复格式：分数=X 理由=Y
 
-## 职位描述
-{job_description}
+职位：{job_description[:1500]}
+简历：{resume_text[:1500]}
+关键词：{', '.join(matched_keywords)}
 
-## 简历内容
-{resume_text[:2000]}
+评分（0-100整数）：
+90-100 高度匹配
+70-89 大部分匹配
+50-69 部分匹配
+0-49 低匹配
 
-## 已匹配的关键词
-{', '.join(matched_keywords)}
-
-## 要求
-请严格按以下格式回复，不要包含任何其他内容：
-分数: [0-100的整数]
-理由: [一句话说明，不超过50字]
-
-评分标准：
-- 90-100: 技能和经验高度匹配，非常适合
-- 70-89: 大部分技能匹配，值得投递
-- 50-69: 部分匹配，可以尝试
-- 0-49: 匹配度低，不建议投递"""
+回复示例：分数=75 理由=技能匹配但缺经验"""
 
     # _call_chat_completion 自带指数退避重试；评分调用跟招呼语生成一样
     # 记 telemetry，不然每个职位多出来的这次调用成本不进 llm_calls.jsonl
@@ -193,7 +185,7 @@ def llm_match_score(
             model=llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
-            max_tokens=200,
+            max_tokens=500,
         )
     except Exception as e:
         record_llm_call(
@@ -215,19 +207,26 @@ def llm_match_score(
         ok=True,
     )
 
-    # 冒号同时容忍 ASCII ":" 和全角 "："——中文 LLM（尤其 DeepSeek）即便 prompt
-    # 给的是 ASCII 冒号，回复也常用全角。只认 ASCII 会让解析静默失败 → fail-open
-    # 恒返 100 → 第二层 LLM 过滤被悄悄绕过。
-    score_match = re.search(r"分数[:：]\s*(\d+)", content)
+    # 多策略解析评分（兼容新旧 deepseek 模型）
+    score_match = re.search(r"分数\s*[=:：]\s*(\d+)", content)       # 分数=75 / 分数:75
     if not score_match:
-        # LLM 没按格式回复时同样 fail-open；fail-closed（按 0 分算）
-        # 会把职位静默跳过，且日志里看不出原因
-        log.warning("LLM 评分回复解析失败，按 100 放行。回复内容: %r", content[:200])
-        return 100, "评分解析失败", True
+        score_match = re.search(r"分数[:：]\s*(\d+)", content)       # 旧格式
+    if not score_match:
+        score_match = re.search(r"(\d{2,3})", content)               # 兜底找数字
+
+    if not score_match:
+        # 完全无法解析 → 检查负面关键词给低分，否则适中分
+        neg = ["不匹配","不适合","不推荐","较低","低匹配","不符","缺乏","缺少","严重不","极低"]
+        if any(w in content for w in neg):
+            log.warning("LLM 评分无法解析+负面信号 → 40 分。回复: %r", content[:100])
+            return 40, "解析失败(负面)", True
+        log.warning("LLM 评分无法解析 → 60 分。回复: %r", content[:100])
+        return 60, "解析失败", True
 
     score = min(100, max(0, int(score_match.group(1))))
-    reason_match = re.search(r"理由[:：]\s*(.+)", content)
-    reason = reason_match.group(1).strip() if reason_match else ""
+    # 提取理由
+    reason_match = re.search(r"理由\s*[=:：]\s*(.+?)(?:\n|$)", content)
+    reason = reason_match.group(1).strip()[:80] if reason_match else content[:80]
     return score, reason, False
 
 

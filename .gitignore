@@ -58,6 +58,11 @@
 
 # 简历 PDF（CLAUDE.md 红线，不能进仓）
 /resume/*.pdf
+# 简历图片 / Demo 动图（个人隐私，不能进仓）
+/resume/*.jpeg
+/resume/*.jpg
+/resume/*.png
+/resume/*.gif
 
 # setuptools editable install 的产物
 *.egg-info/

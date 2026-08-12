@@ -162,14 +162,24 @@ class TestLlmMatchScore:
         assert telemetry_spy[0]["ok"] is False
 
     def test_fail_open_on_unparseable_reply(self, monkeypatch, fake_client, telemetry_spy):
-        # LLM 没按 "分数: NN" 格式回复 → 必须放行，不能按 0 分静默跳过
+        # LLM 没按格式回复 → fail-open 给适中分（60），不卡死投递、也不全放行
         monkeypatch.setattr(
             job_matcher, "_call_chat_completion",
             lambda client, **kwargs: _fake_response("我觉得这个职位很适合你！"),
         )
         score, reason, degraded = llm_match_score("JD", "简历", [])
-        assert score == 100
+        assert score == 60
         assert "解析失败" in reason
+        assert degraded is True
+
+    def test_unparseable_with_negative_signal_scores_40(self, monkeypatch, fake_client, telemetry_spy):
+        # 解析失败但回复带负面信号（如"不匹配"）→ 给低分 40，避免放行明显不合适的职位
+        monkeypatch.setattr(
+            job_matcher, "_call_chat_completion",
+            lambda client, **kwargs: _fake_response("这个职位和您的经验不匹配"),
+        )
+        score, reason, degraded = llm_match_score("JD", "简历", [])
+        assert score == 40
         assert degraded is True
 
 

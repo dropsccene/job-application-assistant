@@ -645,14 +645,84 @@ async def wait_for_css(selector: str, timeout: float = 50) -> bool:
     return el is not None
 
 
+async def send_chat_image(image_path: str) -> bool:
+    """发送图片——点图标弹出文件选择器 → 往对话框粘贴绝对路径 → 回车确认。"""
+    try:
+        from pathlib import Path
+        abs_path = str(Path(image_path).resolve())
+        if not Path(abs_path).exists():
+            print(f"❌ [send_chat_image] 文件不存在: {abs_path}", flush=True)
+            return False
+
+        # 1. 先复制绝对路径到剪贴板
+        import subprocess
+        subprocess.run(
+            ["powershell", "-Command", f"Set-Clipboard -Value '{abs_path}'"],
+            capture_output=True,
+            timeout=5,
+        )
+        await asyncio.sleep(0.3)
+        print(f"📋 [send_chat_image] 路径已复制到剪贴板: {abs_path}", flush=True)
+
+        # 2. 点击「发送图片」图标 → 弹出文件选择器对话框
+        print("🖱️ [send_chat_image] 点击发送图片图标...", flush=True)
+        img_btn = await _tab.select("div[aria-label='发送图片']", timeout=5)
+        if not img_btn:
+            print("❌ [send_chat_image] 找不到发送图片按钮", flush=True)
+            return False
+        await img_btn.click()
+        await asyncio.sleep(1.5)  # 等对话框弹出并获取焦点
+
+        # 3. 在文件选择器对话框里：粘贴路径 → 回车
+        print("⌨️ [send_chat_image] 粘贴路径 + 回车...", flush=True)
+        subprocess.run(
+            [
+                "powershell",
+                "-Command",
+                """
+                Add-Type -AssemblyName System.Windows.Forms
+                Start-Sleep -Milliseconds 800
+                [System.Windows.Forms.SendKeys]::SendWait("^v")
+                Start-Sleep -Milliseconds 500
+                [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+                """,
+            ],
+            capture_output=True,
+            timeout=10,
+        )
+        await asyncio.sleep(2)
+
+        # 4. 图片在文件选择器确认后 BOSS 自动发送，无需额外操作
+        print("✅ [send_chat_image] 图片已发送", flush=True)
+        return True
+    except Exception as e:
+        print(f"❌ [send_chat_image] 异常: {e}", flush=True)
+        return False
+
+
 async def send_chat_message(text: str) -> None:
-    """把 text 打进 ``#chat-input`` 然后回车发送。"""
-    chat = await _tab.select("#chat-input", timeout=10)
+    """把 text 打进聊天输入框然后点击发送。"""
+    # 找输入框：优先 textarea.input，兜底 #chat-input
+    chat = await _tab.select("textarea.input", timeout=5)
     if not chat:
-        raise RuntimeError("chat input (#chat-input) 未找到")
+        chat = await _tab.select("#chat-input", timeout=5)
+    if not chat:
+        chat = await _tab.select("textarea", timeout=5)
+    if not chat:
+        raise RuntimeError("chat input 未找到")
+
     await chat.send_keys(text)
     await asyncio.sleep(3)
-    await chat.send_keys("\n")
+
+    # 发送按钮：优先 .btn-sure-v2.btn-send
+    send_btn = await _tab.select("button.btn-sure-v2.btn-send:not(.disabled)", timeout=10)
+    if not send_btn:
+        send_btn = await _tab.select("button.btn-send:not(.disabled)", timeout=5)
+    if send_btn:
+        await send_btn.click()
+    else:
+        await chat.send_keys("\n")
+
     await asyncio.sleep(1)
 
 

@@ -178,12 +178,29 @@ def _cli_main() -> None:
     module docstring；这里的 ``load_dotenv()`` 是给"models 还没 import 就
     需要 env"的将来留的显式入口，幂等。）
     """
+    # Windows 控制台默认 GBK，❌/✅/⚠️ 这些 emoji 一 print 就 UnicodeEncodeError。
+    # 在 _cli_main 里把 stdout/stderr 切成 UTF-8（不放 module top，免得 import
+    # 进 GUI 进程时动到它的流编码，跟 logging.basicConfig 一个原则）。
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
     load_dotenv()
     logging.basicConfig(
         level=os.getenv("LOGLEVEL", "INFO").upper(),
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+
+    # Ctrl+C 优雅退出：先存记录再关
+    import signal
+    def _graceful_exit(signum, frame):
+        print("\n⏸️  收到中断信号，正在保存记录...")
+        _sync_to_tracking()
+        _daily_report()
+        print("✅ 记录已保存，可以安全关闭")
+        import sys; sys.exit(0)
+    signal.signal(signal.SIGINT, _graceful_exit)
 
     dry_run = os.getenv("DRY_RUN", "").lower() in ("1", "true", "yes")
     if dry_run:
@@ -204,6 +221,97 @@ def _cli_main() -> None:
     uc.loop().run_until_complete(
         run_provider(usr_name, label, dry_run, resume_path)
     )
+
+    # 自动同步到投递记录表 + 生成每日报告
+    _sync_to_tracking()
+    _daily_report()
+
+
+def _daily_report() -> None:
+    """生成每日投递报告并追加到投递记录.md"""
+    from boss_zhipin.report import generate_report, append_report_to_tracking
+    report = generate_report()
+    if report.strip():
+        append_report_to_tracking(report)
+
+
+def _sync_to_tracking() -> None:
+    """将 letters.jsonl 中的新条目自动追加到投递记录.md"""
+    import json
+    import re
+    from pathlib import Path
+    from datetime import datetime
+
+    letters_log = Path("logs/letters.jsonl")
+    tracking_file = Path.home() / "Desktop" / "面试" / "投递记录.md"
+
+    if not letters_log.exists() or not tracking_file.exists():
+        return
+
+    # 读取已有数据
+    content = tracking_file.read_text(encoding="utf-8")
+    existing = {}  # company -> line status (DRY-RUN / 待投 / 已投)
+    for m in re.finditer(r'(\|\s*\d+/\d+\s*\|[^|]+\|\s*\*\*?)([^*|]+?)(\*\*?\s*\|[^|]+\|[^|]+\|\s*)([^|\s]+)', content):
+        existing[m.group(2).strip()] = m.group(4).strip()
+
+    # 读取 letters，只取最新状态（真发 > DRY-RUN）
+    entries = {}
+    with open(letters_log, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+                if not e.get("validation_ok"):
+                    continue
+                jd = e.get("job_description", "")
+                for ln in jd.split("\n"):
+                    if "·" in ln and any(k in ln for k in ("招聘", "经理", "主管", "HR", "总监")):
+                        company = ln.split("·")[0].strip()
+                        # 过滤脏数据
+                        if len(company) > 20 or company in ("与BOSS随时沟通", "去App", "查看"):
+                            continue
+                        sent = e.get("sent", False)
+                        # sent=True 覆盖一切
+                        if company not in entries or sent:
+                            entries[company] = {"sent": sent, "dry_run": e.get("dry_run", True)}
+                        break
+            except json.JSONDecodeError:
+                continue
+
+    today = datetime.now().strftime("%m/%d")
+    new_count = 0
+    update_count = 0
+
+    for company, info in entries.items():
+        status = "已投" if info["sent"] else ("DRY-RUN" if info["dry_run"] else "待投")
+
+        if company in existing:
+            old_status = existing[company]
+            if old_status in ("DRY-RUN", "待投") and status == "已投":
+                # 升级：DRY-RUN → 已投
+                content = re.sub(
+                    rf'(\|\s*\d+/\d+\s*\|[^|]+\|\s*\*\*?){re.escape(company)}(\*\*?\s*\|[^|]+\|[^|]+\|\s*)(DRY-RUN|待投)',
+                    rf'\g<1>{company}\g<2>{status}',
+                    content
+                )
+                update_count += 1
+            continue
+
+        row = f"| {today} | BOSS直聘 | **{company}** | Python后端 | — | {status} |"
+        if "## ❌ 淘汰记录" in content:
+            content = content.replace("## ❌ 淘汰记录", row + "\n## ❌ 淘汰记录")
+        else:
+            content += row + "\n"
+        existing[company] = status
+        new_count += 1
+
+    if new_count or update_count:
+        table_rows = len(re.findall(r'^\| \d+/\d+', content, re.MULTILINE))
+        content = re.sub(r'(\| [\d/]+\| )[\d]+', rf'\g<1>{table_rows}', content)
+        tracking_file.write_text(content, encoding="utf-8")
+        print(f"📋 投递表同步：新增 {new_count} 条 + 更新 {update_count} 条，共 {table_rows} 条")
 
 
 if __name__ == "__main__":

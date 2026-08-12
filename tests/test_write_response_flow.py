@@ -260,7 +260,7 @@ def test_send_limit_stops_after_configured_successful_sends(monkeypatch):
         async def wait(selector: str, timeout: float = 50):
             return True
 
-        async def send_response(response: str):
+        async def send_response(response: str, attachments: list[str] | None = None):
             sent.append(response)
 
         monkeypatch.setenv("BOSS_AUTO_SEND_MAX_SENT", "2")
@@ -308,7 +308,7 @@ def test_successful_send_waits_random_delay_between_jobs(monkeypatch):
         async def wait(selector: str, timeout: float = 50):
             return True
 
-        async def send_response(response: str):
+        async def send_response(response: str, attachments: list[str] | None = None):
             sent.append(response)
 
         async def no_scroll():
