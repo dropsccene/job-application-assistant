@@ -5,20 +5,17 @@ import os
 from pathlib import Path
 import shutil
 
-# 简历图片路径：优先用 BOSS_RESUME_IMAGE env 覆盖（发布版可配），
-# 没设置时回退到本机默认路径。
-_default_user_jpeg = os.environ.get("BOSS_RESUME_IMAGE", "").strip()
-if _default_user_jpeg:
-    _USER_JPEG = Path(_default_user_jpeg).expanduser()
-else:
-    _USER_JPEG = Path.home() / "Desktop" / "面试" / "JD" / "袁仕杰_简历_Python后端AI方向.jpeg"
+# 简历图片路径：用 BOSS_RESUME_IMAGE env 指定（发布版不硬编码个人路径），
+# 没配置时 _USER_JPEG 为 None，get_resume_image 跳过附件。
+_user_jpeg = os.environ.get("BOSS_RESUME_IMAGE", "").strip()
+_USER_JPEG = Path(_user_jpeg).expanduser() if _user_jpeg else None
 _RESUME_CARD = Path("resume") / "resume_card.jpeg"
 _DEMO_GIF = Path("resume") / "demo_rag_stream.gif"
 
 
 def get_resume_image() -> Path | None:
     """获取简历图片路径。复制到项目目录供上传。"""
-    if not _USER_JPEG.exists():
+    if not _USER_JPEG or not _USER_JPEG.exists():
         return None
     output = _RESUME_CARD
     output.parent.mkdir(parents=True, exist_ok=True)
