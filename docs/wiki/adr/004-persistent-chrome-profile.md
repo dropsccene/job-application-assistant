@@ -3,8 +3,8 @@
 - **状态**：已采纳
 - **日期**：2026-05-11
 - **决策人**：dropsccene
-- **相关 commit**：[`eda7af4`](https://github.com/dropsccene/job-application-assistant/commit/eda7af4)
-  + [`7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37)
+- **相关 commit**：[`ed722220`](https://github.com/dropsccene/job-application-assistant/commit/ed722220)
+  + [`2d754ab`](https://github.com/dropsccene/job-application-assistant/commit/2d754ab)
 
 ## 背景
 
@@ -74,7 +74,7 @@ Chrome 用持久化 profile 启动时**会恢复上次会话的所有 tab**。�
 | 尝试 | 结果 |
 |---|---|
 | 启动后只 `await tab.bring_to_front()` | ❌ macOS Chrome 偶尔不抢焦 |
-| 启动后 close 除控制 tab 之外的所有 tab | ❌ Tab 对象 identity 跨 query 不稳，误关 control tab → Chrome 闪退（commit [`7f95efe`](https://github.com/dropsccene/job-application-assistant/commit/7f95efe) 翻车记录） |
+| 启动后 close 除控制 tab 之外的所有 tab | ❌ Tab 对象 identity 跨 query 不稳，误关 control tab → Chrome 闪退（commit `7f95efe` 翻车记录） |
 | `browser.get(url, new_window=True)`（采纳） | ✅ 控制 tab 在独立新窗口，恢复的窗口不动 |
 
 ## 代价

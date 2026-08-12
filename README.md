@@ -161,7 +161,7 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 **警告**：日常 Chrome 必须先完全关掉（菜单栏 → Quit Google Chrome），不然 profile 会被锁。
 
 ### 弹出 newtab、看不到 BOSS 页面
-旧 profile 里有恢复 tab 时会发生。新版本 ([commit `7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37)) 起来直接在新窗口里打开 BOSS，已经修了。
+旧 profile 里有恢复 tab 时会发生。新版本 ([commit `2d754ab`](https://github.com/dropsccene/job-application-assistant/commit/2d754ab)) 起来直接在新窗口里打开 BOSS，已经修了。
 
 ### 卡在 "页面已稳定" 之后不动
 应该没了——之前是 `tab.select(timeout=0)` 在 nodriver 里阻塞。如果还遇到，把控制台输出贴 issue 里。
@@ -197,15 +197,16 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 
 ---
 
-## 想加入维护？
+## 功能规划
 
-我们寻求更多小伙伴加入。如果你愿意做：
-- Electron 前端 UI
-- 给 BOSS 发简历附件
-- 投递历史 / 自动跟进
-- 多账号支持
+本项目是个人求职辅助工具，定位简单、克制：不追求高频群发，只帮真实求职者把
+招呼语写好、发好。接下来想做的方向：
 
-发 issue 或者 PR 都行。
+- [ ] 给 BOSS 发简历附件（任意文件）
+- [ ] 投递历史 / 自动跟进
+- [ ] 多账号支持
+
+有想法欢迎提 [issue](https://github.com/dropsccene/job-application-assistant/issues)。
 
 ---
 

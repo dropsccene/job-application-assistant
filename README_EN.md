@@ -132,7 +132,7 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 ```
 
 ### A blank new-tab page shows up instead of BOSS
-Used to happen when the persistent profile restored other tabs. Fixed in [commit `7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37): the controlled page now opens in its own dedicated window.
+Used to happen when the persistent profile restored other tabs. Fixed in [commit `2d754ab`](https://github.com/dropsccene/job-application-assistant/commit/2d754ab): the controlled page now opens in its own dedicated window.
 
 ### Script hangs after "页面已稳定"
 Used to be a `tab.select(timeout=0)` block. Fixed. If you still see it, paste console output into an issue.
@@ -166,15 +166,16 @@ Pick any OpenAI-compatible endpoint, sign up, and paste the key into `LLM_API_KE
 
 ---
 
-## Help wanted
+## Roadmap
 
-We're looking for contributors interested in:
-- Electron front-end UI
-- Resume-attachment support on the BOSS chat
-- Application history / auto follow-up
-- Multi-account support
+This is a personal job-search assistant. Keep it simple: no mass messaging, just
+better cover letters for real candidates. Upcoming ideas:
 
-Issues and PRs welcome.
+- [ ] Resume-attachment support on the BOSS chat (any file)
+- [ ] Application history / auto follow-up
+- [ ] Multi-account support
+
+Ideas welcome via [issues](https://github.com/dropsccene/job-application-assistant/issues).
 
 ---
 

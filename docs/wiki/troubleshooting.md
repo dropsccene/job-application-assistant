@@ -45,7 +45,7 @@ echo 'RESUME_PATH=/path/to/your/resume.pdf' >> .env
 
 **原因**：Chrome 用持久化 profile 启动时会恢复上次的 tab，控制 tab 被挤到后台。
 
-**修复**：commit [`7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37)
+**修复**：commit [`2d754ab`](https://github.com/dropsccene/job-application-assistant/commit/2d754ab)
 之后控制 tab 会单独开在新窗口里。如果你的版本还是老的：
 
 ```bash
@@ -109,7 +109,7 @@ git pull origin master  # 拉到 nodriver 版本之后这个 error class 不可�
 **原因**：BOSS 把 `/web/geek/job-recommend` 重定向到 `/web/geek/jobs`，新版页面
 没有老版本那种"推荐 tag chip"，硬找会卡到超时。
 
-**修复**：commit [`e01c037`](https://github.com/dropsccene/job-application-assistant/commit/e01c037)
+**修复**：commit `e01c037`
 之后所有 xpath 都有显式 timeout + fallback 到"用默认推荐 feed"。`git pull`
 拿到最新即可。
 
