@@ -11,9 +11,9 @@
 
 - **状态**：已采纳（2026-06 起 provider 路由部分被通用端点取代，见上）
 - **日期**：2026-05-10
-- **决策人**：longsizhuo
-- **相关 commit**：[`e83e314`](https://github.com/longsizhuo/BossZhiPin_Job_Search/commit/e83e314)
-  (引入多 provider) + [`ffbab2f`](https://github.com/longsizhuo/BossZhiPin_Job_Search/commit/ffbab2f)
+- **决策人**：dropsccene
+- **相关 commit**：[`e83e314`](https://github.com/dropsccene/job-application-assistant/commit/e83e314)
+  (引入多 provider) + [`ffbab2f`](https://github.com/dropsccene/job-application-assistant/commit/ffbab2f)
   (OPENAI_BASE_URL 接通)
 
 ## 背景

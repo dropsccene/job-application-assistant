@@ -13,7 +13,7 @@ documents:
 # 变更记录
 
 本项目的人工变更记录。实现细节以代码 + 对应 ADR / wiki 为准，这里只记
-「改了什么 / 为什么 / 影响范围」。文档遵循 [OKF frontmatter](https://github.com/longsizhuo/okf-frontmatter) 约定。
+「改了什么 / 为什么 / 影响范围」。文档遵循 [OKF frontmatter](https://github.com/dropsccene/okf-frontmatter) 约定。
 
 ## 2026-06-30 — 修复登录态误判 (PR #29)
 

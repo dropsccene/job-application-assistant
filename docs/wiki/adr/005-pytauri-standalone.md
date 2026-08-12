@@ -2,7 +2,7 @@
 
 - **状态**：已采纳
 - **日期**：2026-06-07
-- **决策人**：longsizhuo
+- **决策人**：dropsccene
 
 ## 背景
 
@@ -41,7 +41,7 @@
 | Tauri 来源 | `pytauri-wheel` 预编译 binary | `src-tauri/` 自己编译 |
 | Tauri 配置 | 运行时读 `src/boss_zhipin/tauri/Tauri.toml` | 编译期 `generate_context!` 嵌入 |
 | capabilities | `tauri/capabilities/default.toml` | `src-tauri/capabilities/default.json` |
-| CWD / 数据目录 | repo root（历史行为） | `paths.ensure_app_data_cwd()` → `~/Library/Application Support/com.longsizhuo.boss-zhipin` |
+| CWD / 数据目录 | repo root（历史行为） | `paths.ensure_app_data_cwd()` → `~/Library/Application Support/com.dropsccene.boss-zhipin` |
 
 两份 capabilities / 四处版本号靠 `tests/test_standalone_sync.py` 守卫。
 
@@ -95,7 +95,7 @@
   把 `python313.dll` 放在跟 `boss-zhipin.exe` 同级——这是 DLL 同目录优先
   解析能命中的位置。如果改成放 `resources/` 子目录，启动会找不到 DLL。
 - `RUSTFLAGS` 按 whitespace 切，路径里有空格（``C:\Program Files\...``）
-  会炸。本仓库默认在无空格盘下（`E:\BossZhiPin_Job_Search`），不预先优化；
+  会炸。本仓库默认在无空格盘下（`E:\job-application-assistant`），不预先优化；
   以后真踩到再换 `CARGO_ENCODED_RUSTFLAGS`。
 
 ## 体积
@@ -112,5 +112,5 @@ dmg ≈ 1.5GB，大头是 torch（sentence-transformers 的依赖）。已知但
 - `src-tauri/**` 变更由 `.github/workflows/rust.yml` 的 `cargo check` 兜底
 - 发版 checklist 多一步：四处版本号同步（测试会拦）
 - standalone 的用户数据（.env / chrome_profile / logs / vectorstores）落在
-  `~/Library/Application Support/com.longsizhuo.boss-zhipin/`，跟 repo 模式
+  `~/Library/Application Support/com.dropsccene.boss-zhipin/`，跟 repo 模式
   互不干扰

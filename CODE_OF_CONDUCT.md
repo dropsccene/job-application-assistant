@@ -1,4 +1,4 @@
-# 🤝 How to Contribute to BossZhiPin_Job_Search
+# 🤝 How to Contribute to job-application-assistant
 
 ## 🌟 简介 | Introduction
 欢迎你为本项目做出贡献！无论你是开发新功能、优化现有代码，还是改进用户界面或文档，我们都非常欢迎。

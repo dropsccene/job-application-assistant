@@ -30,10 +30,10 @@ done
 if [ -n "$APP_FOUND" ]; then
     echo "  ✓ 检测到已装 GUI App: $APP_FOUND"
     echo "    → 如果用户只是想用，建议**走 Path A**（GUI 内填配置即可），不用继续往下走 dev path"
-    echo "    → 用户数据目录：~/Library/Application Support/com.longsizhuo.boss-zhipin/"
+    echo "    → 用户数据目录：~/Library/Application Support/com.dropsccene.boss-zhipin/"
 else
     echo "  ℹ 未检测到 GUI App。如果用户是非开发者，引导他去 latest release 下安装包："
-    echo "    https://github.com/longsizhuo/BossZhiPin_Job_Search/releases/latest"
+    echo "    https://github.com/dropsccene/job-application-assistant/releases/latest"
 fi
 
 echo ""
@@ -51,7 +51,7 @@ else
     echo "  ✗ git 未安装。macOS 跑 xcode-select --install / Ubuntu 跑 sudo apt install git"
 fi
 if [ -f "pyproject.toml" ] && grep -q "boss-zhipin-job-search" pyproject.toml 2>/dev/null; then
-    echo "  ✓ 在 BossZhiPin_Job_Search 项目根目录里"
+    echo "  ✓ 在 job-application-assistant 项目根目录里"
 else
     echo "  ✗ 不在项目根目录（找不到 pyproject.toml 或里面没有 boss-zhipin-job-search）"
     echo "    先 cd 到 clone 下来的项目目录"

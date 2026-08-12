@@ -5,7 +5,9 @@
 
 读 BOSS 上的岗位描述，用 LLM 给 HR 生成一封礼貌的打招呼语，按规则审核后再发送。走**任意 OpenAI 兼容端点**（DeepSeek / OpenAI / Claude / 通义千问·百炼 / 智谱GLM / 豆包 / Kimi / 本地 Ollama …），配好 `LLM_BASE_URL` + `LLM_API_KEY` + `LLM_MODEL` 三个变量就能起跑。
 
-> 原作者已经暂停维护，目前由我和小伙伴们继续优化。已完成迁移到 [uv](https://docs.astral.sh/uv/) 管理依赖、移除 langchain 全家桶、把浏览器自动化从 Selenium 迁到 [nodriver](https://github.com/ultrafunkamsterdam/nodriver)（绕过 BOSS 反爬更稳）。
+> 本项目 fork 自 [longsizhuo/BossZhiPin_Job_Search](https://github.com/longsizhuo/BossZhiPin_Job_Search)（MIT），
+> 在原版基础上新增了收件箱监控（[送达]/[已读]/[未读] 状态跟踪）、每日投递报告、
+> 简历图片 / Demo 附件等功能。
 
 > ⚠️ 请勿用本脚本割韭菜。能被逼到用脚本投简历的人，身上没啥油水可榨。
 
@@ -33,8 +35,8 @@
 
 ```bash
 # 1. clone + 安装依赖
-git clone https://github.com/longsizhuo/BossZhiPin_Job_Search.git
-cd BossZhiPin_Job_Search
+git clone https://github.com/dropsccene/job-application-assistant.git
+cd job-application-assistant
 uv sync
 
 # 2. 配 API key
@@ -77,7 +79,7 @@ uv run python -m boss_zhipin.tauri
 ```
 
 Standalone 模式的用户数据（`.env` / `chrome_profile/` / `logs/` /
-`vectorstores/`）落在 `~/Library/Application Support/com.longsizhuo.boss-zhipin/`，
+`vectorstores/`）落在 `~/Library/Application Support/com.dropsccene.boss-zhipin/`，
 跟 repo 目录互不干扰。
 
 **界面语言**：GUI 支持中文 / English 切换。「配置」页顶部有「界面语言 · Language」
@@ -159,7 +161,7 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 **警告**：日常 Chrome 必须先完全关掉（菜单栏 → Quit Google Chrome），不然 profile 会被锁。
 
 ### 弹出 newtab、看不到 BOSS 页面
-旧 profile 里有恢复 tab 时会发生。新版本 ([commit `7dbdf37`](https://github.com/longsizhuo/BossZhiPin_Job_Search/commit/7dbdf37)) 起来直接在新窗口里打开 BOSS，已经修了。
+旧 profile 里有恢复 tab 时会发生。新版本 ([commit `7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37)) 起来直接在新窗口里打开 BOSS，已经修了。
 
 ### 卡在 "页面已稳定" 之后不动
 应该没了——之前是 `tab.select(timeout=0)` 在 nodriver 里阻塞。如果还遇到，把控制台输出贴 issue 里。
@@ -212,8 +214,8 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 感谢所有支持本项目的人：
 
 <p align="left">
-    <a href="https://github.com/longsizhuo/BossZhiPin_Job_Search/graphs/contributors">
-        <img width="770" src="https://contrib.rocks/image?repo=longsizhuo/BossZhiPin_Job_Search&max=300&columns=16" />
+    <a href="https://github.com/dropsccene/job-application-assistant/graphs/contributors">
+        <img width="770" src="https://contrib.rocks/image?repo=dropsccene/job-application-assistant&max=300&columns=16" />
     </a>
 </p>
 

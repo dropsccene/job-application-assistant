@@ -15,7 +15,7 @@ resume/               # 简历存储目录
 
 ## 存储位置
 1. 应用数据目录：
-   - Windows: `%LOCALAPPDATA%\BossZhiPin\BossZhiPin_Job_Search\resume\`
+   - Windows: `%LOCALAPPDATA%\BossZhiPin\job-application-assistant\resume\`
    - 用于程序内部访问
 
 2. 桌面：

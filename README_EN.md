@@ -36,8 +36,8 @@ Reads job descriptions from BOSS Zhipin, asks an LLM to write a polite cover-let
 
 ```bash
 # 1. Clone + install deps
-git clone https://github.com/longsizhuo/BossZhiPin_Job_Search.git
-cd BossZhiPin_Job_Search
+git clone https://github.com/dropsccene/job-application-assistant.git
+cd job-application-assistant
 uv sync
 
 # 2. Configure API keys
@@ -132,7 +132,7 @@ BOSS_CHROME_PROFILE="$HOME/Library/Application Support/Google/Chrome" uv run mai
 ```
 
 ### A blank new-tab page shows up instead of BOSS
-Used to happen when the persistent profile restored other tabs. Fixed in [commit `7dbdf37`](https://github.com/longsizhuo/BossZhiPin_Job_Search/commit/7dbdf37): the controlled page now opens in its own dedicated window.
+Used to happen when the persistent profile restored other tabs. Fixed in [commit `7dbdf37`](https://github.com/dropsccene/job-application-assistant/commit/7dbdf37): the controlled page now opens in its own dedicated window.
 
 ### Script hangs after "页面已稳定"
 Used to be a `tab.select(timeout=0)` block. Fixed. If you still see it, paste console output into an issue.
@@ -183,8 +183,8 @@ Issues and PRs welcome.
 Thanks to everyone who's supported this project:
 
 <p align="left">
-    <a href="https://github.com/longsizhuo/BossZhiPin_Job_Search/graphs/contributors">
-        <img width="770" src="https://contrib.rocks/image?repo=longsizhuo/BossZhiPin_Job_Search&max=300&columns=16" />
+    <a href="https://github.com/dropsccene/job-application-assistant/graphs/contributors">
+        <img width="770" src="https://contrib.rocks/image?repo=dropsccene/job-application-assistant&max=300&columns=16" />
     </a>
 </p>
 

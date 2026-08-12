@@ -2,7 +2,7 @@
 
 - **状态**：已采纳
 - **日期**：2026-05-12
-- **决策人**：longsizhuo
+- **决策人**：dropsccene
 - **相关 commit**：本 PR 引入 `audit/telemetry.py`
 
 ## 背景
